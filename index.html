@@ -2,25 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智能合約部署工具</title>
-    <link rel="stylesheet"href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.4.0/web3.min.js"></script></head>
+    <link rel="stylesheet" href="style.css">
+    <!-- 加入 Web3.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.4.0/web3.min.js"></script>
+</head>
 <body>
     <h1>智能合約部署工具</h1>
-    <from id="contractForm">
+    <form id="contractForm">
+        <!-- 新增合約類型選單 -->
+        <label>合約類型：</label>
+        <select id="contractType">
+            <option value="erc20">ERC-20 代幣合約</option>
+            <option value="erc721">ERC-721 NFT 合約</option>
+        </select>
+        <br><br>
+
         <label>合約名稱：</label>
         <input type="text" id="contractName" placeholder="輸入合約名稱" required>
         <br><br>
+
         <label>代幣符號：</label>
         <input type="text" id="symbol" placeholder="輸入代幣符號" required>
         <br><br>
+
         <label>總供應量：</label>
         <input type="number" id="totalSupply" placeholder="輸入總供應量" required>
         <br><br>
+
         <button type="submit">部署合約</button>
-    </from>
+    </form>
     <div id="result"></div>
+    <!-- 引入自定義 script.js 文件 -->
     <script src="script.js"></script>
 </body>
 </html>
