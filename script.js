@@ -1,48 +1,31 @@
 let web3;
 let userAccount;
 
-// 檢查是否安裝 MetaMask
-if (typeof window.ethereum !== 'undefined') {
-    console.log('MetaMask 已安裝');
-    web3 = new Web3(window.ethereum); // 初始化 Web3 物件
-} else {
-    alert('請安裝 MetaMask 錢包以使用此工具！');
-}
-
-// 連接 MetaMask 錢包
-async function connectWallet() {
-    try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); // 請求連接錢包
-        userAccount = accounts[0]; // 獲取連接的帳戶地址
-        alert('已連接錢包地址: ' + userAccount);
-        console.log('已連接帳戶:', userAccount);
-    } catch (error) {
-        console.error('連接錢包失敗', error);
-        alert('無法連接錢包，請重試！');
-    }
-}
-
-// 表單提交事件監聽，執行連接錢包邏輯
-document.getElementById('contractForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); // 防止表單刷新頁面
-
-    // 如果尚未連接錢包，則先連接錢包
-    if (!userAccount) {
-        await connectWallet();
-    }
-
-    // 獲取用戶輸入的參數
-    const contractName = document.getElementById('contractName').value;
-    const symbol = document.getElementById('symbol').value;
-    const totalSupply = document.getElementById('totalSupply').value;
-
-    // 輸出結果到 Console 進行測試
-    console.log('合約名稱:', contractName);
-    console.log('代幣符號:', symbol);
-    console.log('總供應量:', totalSupply);
-
-    // 顯示暫時彈窗，確認數據已提交
-    alert('已提交資料：\n合約名稱: ' + contractName + '\n代幣符號: ' + symbol + '\n總供應量: ' + totalSupply);
-
-    // 下一步：這裡將加入智能合約部署邏輯
-});
+// ERC-20 和 ERC-721 智能合約模板
+const contractTemplates = {
+    erc20: {
+        abi: [
+            {
+                "inputs": [
+                    { "internalType": "string", "name": "name", "type": "string" },
+                    { "internalType": "string", "name": "symbol", "type": "string" },
+                    { "internalType": "uint256", "name": "initialSupply", "type": "uint256" }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            }
+        ],
+        bytecode: "0x608060405234801561001057600080fd5b506040516101f93803806101f98339818101604052602081101561003357600080fd5b8101908080519060200190929190805182019291905050506100c3565b82805461004c90610109565b90600052602060002090601f01602090048101928261006e57600085556100b5565b82601f106100875780518352601f199092019160209182019101610068565b820191906000526020600020905b81548152906001019060200180831161006b57829003601f168201915b5050505050905090565b6100c1565b61015b806100d36000396000f3fe6080604052600436106100565760003560e01c806306fdde031461005b57806395d89b4114610089575b600080fd5b34801561006757600080fd5b50610070610096565b604051808260ff16815260200191505060405180910390f35b61009161009f565b005b60005481565b600160ff16600090815260208190526040902054600090910154600160ff16806100d95750600160ff1660009081526020819052604090205460009190915481106100d957600080fd5b50565b6000813590506100eb81610107565b92915050565b60006020828403121561010557600080fd5b6000610113848285016100de565b91505092915050565b610125816100d3565b82525050565b6000602082019050610140600083018461011c565b9291505056fea2646970667358221220cda7a6c31679d56e25b8d586116c77a0cc61c5da94abfdb92b9c5a62f2ff51e164736f6c63430008040033"
+    },
+    erc721: {
+        abi: [
+            {
+                "inputs": [
+                    { "internalType": "string", "name": "name", "type": "string" },
+                    { "internalType": "string", "name": "symbol", "type": "string" }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            }
+        ],
+        bytecode: "0x608060405234801561001057600080fd5b506040516105b23803806105b28339818101604052602081101561003357600080fd5b8101908080519060200190929190805182019291905050508060009080519060200190610070929190610076565b50506100fa565b82805461007d9061011e565b90600052602060002090601f01602090048101928261009f57600085556100e5565b82601f106100b
