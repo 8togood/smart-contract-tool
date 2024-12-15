@@ -15,7 +15,7 @@ const contractTemplates = {
                 "type": "constructor"
             }
         ],
-        bytecode: "0x608060405234801561001057600080fd5b506040516101f93803806101f98339818101604052602081101561003357600080fd5b8101908080519060200190929190805182019291905050506100c3565b82805461004c90610109565b90600052602060002090601f01602090048101928261006e57600085556100b5565b82601f106100875780518352601f199092019160209182019101610068565b820191906000526020600020905b81548152906001019060200180831161006b57829003601f168201915b5050505050905090565b6100c1565b61015b806100d36000396000f3fe6080604052600436106100565760003560e01c806306fdde031461005b57806395d89b4114610089575b600080fd5b34801561006757600080fd5b50610070610096565b604051808260ff16815260200191505060405180910390f35b61009161009f565b005b60005481565b600160ff16600090815260208190526040902054600090910154600160ff16806100d95750600160ff1660009081526020819052604090205460009190915481106100d957600080fd5b50565b6000813590506100eb81610107565b92915050565b60006020828403121561010557600080fd5b6000610113848285016100de565b91505092915050565b610125816100d3565b82525050565b6000602082019050610140600083018461011c565b9291505056fea2646970667358221220cda7a6c31679d56e25b8d586116c77a0cc61c5da94abfdb92b9c5a62f2ff51e164736f6c63430008040033"
+        bytecode: "0x608060405234..." // 替換為完整 ERC-20 Bytecode
     },
     erc721: {
         abi: [
@@ -28,4 +28,77 @@ const contractTemplates = {
                 "type": "constructor"
             }
         ],
-        bytecode: "0x608060405234801561001057600080fd5b506040516105b23803806105b28339818101604052602081101561003357600080fd5b8101908080519060200190929190805182019291905050508060009080519060200190610070929190610076565b50506100fa565b82805461007d9061011e565b90600052602060002090601f01602090048101928261009f57600085556100e5565b82601f106100b
+        bytecode: "0x608060405234..." // 替換為完整 ERC-721 Bytecode
+    }
+};
+
+// 初始化 Web3
+if (typeof window.ethereum !== 'undefined') {
+    web3 = new Web3(window.ethereum);
+} else {
+    alert('請安裝 MetaMask 錢包以使用此工具！');
+}
+
+// 連接 MetaMask 錢包
+async function connectWallet() {
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        userAccount = accounts[0];
+        alert('已連接錢包地址: ' + userAccount);
+    } catch (error) {
+        console.error('連接錢包失敗', error);
+    }
+}
+
+// 支付邏輯：用戶支付固定費用
+async function processPayment() {
+    try {
+        const paymentAmount = web3.utils.toWei('0.01', 'ether'); // 固定支付金額 0.01 ETH
+        await web3.eth.sendTransaction({
+            from: userAccount,
+            to: '你的錢包地址', // 替換為接收支付的錢包地址
+            value: paymentAmount
+        });
+        alert('支付成功，開始部署合約...');
+    } catch (error) {
+        console.error('支付失敗', error);
+        alert('支付失敗，請重試！');
+        throw error; // 阻止進一步操作
+    }
+}
+
+// 表單提交事件：檢查支付並部署合約
+document.getElementById('contractForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const contractType = document.getElementById('contractType').value;
+    const contractName = document.getElementById('contractName').value;
+    const symbol = document.getElementById('symbol').value;
+    const totalSupply = document.getElementById('totalSupply').value;
+
+    if (!userAccount) {
+        await connectWallet();
+    }
+
+    try {
+        // 先進行支付
+        await processPayment();
+
+        const { abi, bytecode } = contractTemplates[contractType];
+        const contract = new web3.eth.Contract(abi);
+
+        alert('開始部署合約...');
+        const result = await contract.deploy({
+            data: bytecode,
+            arguments: contractType === 'erc20' ? [contractName, symbol, totalSupply] : [contractName, symbol]
+        }).send({
+            from: userAccount,
+            gas: 3000000
+        });
+
+        alert('合約成功部署！地址：' + result.options.address);
+        console.log('合約地址:', result.options.address);
+    } catch (error) {
+        console.error('操作失敗:', error);
+    }
+});
