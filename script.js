@@ -39,6 +39,19 @@ if (typeof window.ethereum !== 'undefined') {
     alert('請安裝 MetaMask 錢包以使用此工具！');
 }
 
+// 初始化 Firebase
+const firebaseConfig = {
+    apiKey: "你的API金鑰",
+    authDomain: "你的專案域名",
+    databaseURL: "你的資料庫URL",
+    projectId: "你的專案ID",
+    storageBucket: "你的儲存區域",
+    messagingSenderId: "你的發送者ID",
+    appId: "你的應用程式ID"
+};
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 // 連接 MetaMask 錢包
 async function connectWallet() {
     try {
@@ -50,10 +63,10 @@ async function connectWallet() {
     }
 }
 
-// 支付邏輯：用戶支付固定費用
+// 支付邏輯
 async function processPayment() {
     try {
-        const paymentAmount = web3.utils.toWei('0.01', 'ether'); // 固定支付金額 0.01 ETH
+        const paymentAmount = web3.utils.toWei('0.01', 'ether'); // 固定支付金額
         await web3.eth.sendTransaction({
             from: userAccount,
             to: '你的錢包地址', // 替換為接收支付的錢包地址
@@ -63,7 +76,24 @@ async function processPayment() {
     } catch (error) {
         console.error('支付失敗', error);
         alert('支付失敗，請重試！');
-        throw error; // 阻止進一步操作
+        throw error;
+    }
+}
+
+// 儲存部署記錄到 Firebase
+async function saveDeploymentRecord(contractType, contractName, symbol, totalSupply, contractAddress) {
+    try {
+        await database.ref('deployments/' + userAccount).push({
+            contractType,
+            contractName,
+            symbol,
+            totalSupply,
+            contractAddress,
+            timestamp: Date.now()
+        });
+        console.log('部署記錄已保存');
+    } catch (error) {
+        console.error('儲存記錄失敗', error);
     }
 }
 
@@ -98,6 +128,9 @@ document.getElementById('contractForm').addEventListener('submit', async functio
 
         alert('合約成功部署！地址：' + result.options.address);
         console.log('合約地址:', result.options.address);
+
+        // 儲存部署記錄
+        await saveDeploymentRecord(contractType, contractName, symbol, totalSupply, result.options.address);
     } catch (error) {
         console.error('操作失敗:', error);
     }
